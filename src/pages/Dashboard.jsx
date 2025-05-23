@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 import { FiClock, FiCalendar } from 'react-icons/fi';
 
@@ -17,7 +17,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTimeLogs = async () => {
       try {
-        const { data } = await axios.get('/api/timelogs/me');
+        const { data } = await api.get('/api/timelogs/me');
         setTimeLogs(data);
         
         // Calculate stats

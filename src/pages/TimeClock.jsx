@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 import { FiLogIn, FiLogOut, FiClock } from 'react-icons/fi';
 
@@ -15,7 +15,7 @@ const TimeClock = () => {
   useEffect(() => {
     const fetchActiveSession = async () => {
       try {
-        const { data } = await axios.get('/api/timelogs/me');
+        const { data } = await api.get('/api/timelogs/me');
         const active = data.find((log) => log.status === 'active');
         
         if (active) {
@@ -55,7 +55,7 @@ const TimeClock = () => {
   const handleClockIn = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.post('/api/timelogs/login');
+      const { data } = await api.post('/api/timelogs/login');
       setActiveSession(data);
       toast.success('Clocked in successfully!');
     } catch (error) {
@@ -68,7 +68,7 @@ const TimeClock = () => {
   const handleClockOut = async () => {
     try {
       setIsLoading(true);
-      await axios.put('/api/timelogs/logout');
+      await api.put('/api/timelogs/logout');
       setActiveSession(null);
       toast.success('Clocked out successfully!');
     } catch (error) {

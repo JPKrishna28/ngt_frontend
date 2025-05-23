@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { FiUsers, FiClock, FiCalendar } from 'react-icons/fi';
 
 const AdminDashboard = () => {
@@ -17,10 +17,10 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         // Fetch employees
-        const employeesRes = await axios.get('/api/employees');
+        const employeesRes = await api.get('/api/employees');
         
         // Fetch all time logs
-        const logsRes = await axios.get('/api/timelogs');
+        const logsRes = await api.get('/api/timelogs');
         
         // Calculate stats
         calculateStats(employeesRes.data, logsRes.data);
@@ -193,8 +193,6 @@ const AdminDashboard = () => {
               <FiUsers className="text-blue-600 mr-3 text-lg" />
               <span>Manage Employees</span>
             </Link>
-            
-            {/* Can add more quick actions here */}
             
             <div className="mt-6 pt-6 border-t border-gray-200">
               <h3 className="text-lg font-medium text-gray-800 mb-4">System Status</h3>

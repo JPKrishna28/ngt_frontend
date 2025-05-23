@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios'; // Changed from importing axios directly
 import { toast } from 'react-toastify';
 import { FiUser, FiUserPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
@@ -23,11 +23,11 @@ const EmployeeList = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get('/api/employees');
+      const { data } = await api.get('/api/employees'); // Using api instead of axios
       setEmployees(data);
     } catch (error) {
       console.error('Error fetching employees:', error);
-      toast.error('Failed to fetch employees');
+      toast.error(error.response?.data?.message || 'Failed to fetch employees');
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ const EmployeeList = () => {
     try {
       if (editMode) {
         // Update employee
-        await axios.put(`/api/employees/${currentEmployee.employeeId}`, {
+        await api.put(`/api/employees/${currentEmployee.employeeId}`, { // Using api instead of axios
           name: formData.name,
           role: formData.role,
           ...(formData.password && { password: formData.password }),
@@ -88,7 +88,7 @@ const EmployeeList = () => {
         toast.success('Employee updated successfully');
       } else {
         // Create new employee
-        await axios.post('/api/auth/register', formData);
+        await api.post('/api/auth/register', formData); // Using api instead of axios
         toast.success('Employee created successfully');
       }
       
@@ -105,7 +105,7 @@ const EmployeeList = () => {
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        await axios.delete(`/api/employees/${employeeId}`);
+        await api.delete(`/api/employees/${employeeId}`); // Using api instead of axios
         toast.success('Employee deleted successfully');
         fetchEmployees();
       } catch (error) {

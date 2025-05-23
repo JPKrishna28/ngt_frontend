@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../api/axios';
 import { FiUserPlus } from 'react-icons/fi';
 
 const RegisterPage = () => {
@@ -12,7 +12,7 @@ const RegisterPage = () => {
     confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  
   const navigate = useNavigate();
   
   const { employeeId, name, password, confirmPassword } = formData;
@@ -40,7 +40,7 @@ const RegisterPage = () => {
       setIsLoading(true);
       
       // Register user
-      await axios.post('/api/auth/public-register', {
+      await api.post('/api/auth/public-register', {
         employeeId,
         name,
         password,

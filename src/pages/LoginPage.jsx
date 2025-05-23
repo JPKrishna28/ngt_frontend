@@ -91,7 +91,6 @@ const LoginPage = () => {
           </div>
         </form>
         
-        {/* Added link to registration page */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}

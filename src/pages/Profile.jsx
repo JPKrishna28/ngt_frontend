@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 import { FiUser, FiLock } from 'react-icons/fi';
 
@@ -47,7 +47,7 @@ const Profile = () => {
     
     try {
       setLoading(true);
-      const { data } = await axios.put(`/api/employees/${auth.employeeId}`, {
+      const { data } = await api.put(`/api/employees/${auth.employeeId}`, {
         name: userData.name,
       });
       
@@ -79,7 +79,7 @@ const Profile = () => {
     
     try {
       setLoading(true);
-      await axios.put(`/api/employees/${auth.employeeId}`, {
+      await api.put(`/api/employees/${auth.employeeId}`, {
         password: passwordData.newPassword,
       });
       
