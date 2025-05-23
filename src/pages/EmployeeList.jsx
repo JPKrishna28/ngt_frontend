@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axios'; // Changed from importing axios directly
+import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { FiUser, FiUserPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiUserPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     employeeId: '',
     name: '',
@@ -20,11 +22,26 @@ const EmployeeList = () => {
     fetchEmployees();
   }, []);
   
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredEmployees(employees);
+    } else {
+      const filtered = employees.filter(
+        employee => 
+          employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          employee.role.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredEmployees(filtered);
+    }
+  }, [searchTerm, employees]);
+  
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/api/employees'); // Using api instead of axios
+      const { data } = await api.get('/api/employees');
       setEmployees(data);
+      setFilteredEmployees(data);
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast.error(error.response?.data?.message || 'Failed to fetch employees');
@@ -80,15 +97,15 @@ const EmployeeList = () => {
     try {
       if (editMode) {
         // Update employee
-        await api.put(`/api/employees/${currentEmployee.employeeId}`, { // Using api instead of axios
+        await api.put(`/api/employees/${currentEmployee.employeeId}`, {
           name: formData.name,
           role: formData.role,
           ...(formData.password && { password: formData.password }),
         });
         toast.success('Employee updated successfully');
       } else {
-        // Create new employee
-        await api.post('/api/auth/register', formData); // Using api instead of axios
+        // Create new employee - using the admin-only register endpoint
+        await api.post('/api/auth/register', formData);
         toast.success('Employee created successfully');
       }
       
@@ -105,7 +122,7 @@ const EmployeeList = () => {
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        await api.delete(`/api/employees/${employeeId}`); // Using api instead of axios
+        await api.delete(`/api/employees/${employeeId}`);
         toast.success('Employee deleted successfully');
         fetchEmployees();
       } catch (error) {
@@ -113,38 +130,59 @@ const EmployeeList = () => {
       }
     }
   };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
   
   if (loading) {
-    return <div className="text-center py-8">Loading employees...</div>;
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <span className="ml-3 text-gray-700">Loading employees...</span>
+      </div>
+    );
   }
   
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Employee Management</h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <FiUserPlus className="mr-2" />
-          Add Employee
-        </button>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">Employee Management</h1>
+        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search employees..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+            />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FiUserPlus className="mr-2" />
+            Add Employee
+          </button>
+        </div>
       </div>
       
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">ID</th>
-                <th className="py-3 px-6 text-left">Name</th>
-                <th className="py-3 px-6 text-left">Role</th>
-                <th className="py-3 px-6 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600 text-sm">
-              {employees.length > 0 ? (
-                employees.map((employee) => (
+        {filteredEmployees.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 text-left">ID</th>
+                  <th className="py-3 px-6 text-left">Name</th>
+                  <th className="py-3 px-6 text-left">Role</th>
+                  <th className="py-3 px-6 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 text-sm">
+                {filteredEmployees.map((employee) => (
                   <tr key={employee._id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="py-3 px-6 text-left whitespace-nowrap">
                       <div className="flex items-center">
@@ -168,37 +206,38 @@ const EmployeeList = () => {
                       <div className="flex items-center justify-center space-x-3">
                         <button
                           onClick={() => handleOpenModal(employee)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          title="Edit"
                         >
-                          <FiEdit2 />
+                          <FiEdit2 size={18} />
                         </button>
                         <button
                           onClick={() => handleDeleteEmployee(employee.employeeId)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 transition-colors"
+                          title="Delete"
                         >
-                          <FiTrash2 />
+                          <FiTrash2 size={18} />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="py-6 text-center text-gray-500">
-                    No employees found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="py-8 text-center text-gray-500">
+            {searchTerm ? 'No employees match your search' : 'No employees found'}
+          </div>
+        )}
       </div>
       
+      {/* Employee Modal - Add/Edit */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md z-10 p-6">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="absolute inset-0 bg-black opacity-50" onClick={handleCloseModal}></div>
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md z-10 p-6 mx-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">
               {editMode ? 'Edit Employee' : 'Add New Employee'}
             </h2>
             <form onSubmit={handleSubmit}>
@@ -215,6 +254,9 @@ const EmployeeList = () => {
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                 />
+                {editMode && (
+                  <p className="text-xs text-gray-500 mt-1">Employee ID cannot be changed</p>
+                )}
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -260,13 +302,13 @@ const EmployeeList = () => {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {editMode ? 'Update' : 'Create'}
                 </button>
@@ -275,6 +317,12 @@ const EmployeeList = () => {
           </div>
         </div>
       )}
+
+      {/* Date/time indicator in footer */}
+      <div className="mt-8 text-center text-xs text-gray-500">
+        <p>Date: 2025-05-23 | Time: 10:52:01 UTC</p>
+        <p>Current user: Krizzna69</p>
+      </div>
     </div>
   );
 };

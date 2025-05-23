@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useAuth from '../hooks/useAuth';
 import { FiClock } from 'react-icons/fi';
@@ -91,12 +91,10 @@ const LoginPage = () => {
           </div>
         </form>
         
+        {/* Removed the registration link */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              Register here
-            </Link>
+            Contact your administrator for account access
           </p>
         </div>
       </div>

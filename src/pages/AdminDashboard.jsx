@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
-import { FiUsers, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiUsers, FiClock, FiCalendar, FiInfo } from 'react-icons/fi';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
     totalHoursToday: 0,
+    totalHoursTodayAdjusted: 0,
     totalHoursThisWeek: 0,
+    totalHoursThisWeekAdjusted: 0,
   });
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,18 +53,23 @@ const AdminDashboard = () => {
     );
     
     let hoursToday = 0;
+    let hoursTodayAdjusted = 0;
     let hoursThisWeek = 0;
+    let hoursThisWeekAdjusted = 0;
     
     logs.forEach((log) => {
       if (log.status === 'completed') {
         const logDate = new Date(log.loginTime);
+        const adjustedHours = log.adjustedHours !== undefined ? log.adjustedHours : log.totalHours;
         
         if (logDate >= today) {
           hoursToday += log.totalHours;
+          hoursTodayAdjusted += adjustedHours;
         }
         
         if (logDate >= oneWeekAgo) {
           hoursThisWeek += log.totalHours;
+          hoursThisWeekAdjusted += adjustedHours;
         }
       }
     });
@@ -71,7 +78,9 @@ const AdminDashboard = () => {
       totalEmployees: employees.length,
       activeEmployees: activeEmployeeIds.size,
       totalHoursToday: hoursToday.toFixed(2),
+      totalHoursTodayAdjusted: hoursTodayAdjusted.toFixed(2),
       totalHoursThisWeek: hoursThisWeek.toFixed(2),
+      totalHoursThisWeekAdjusted: hoursThisWeekAdjusted.toFixed(2),
     });
   };
   
@@ -90,10 +99,23 @@ const AdminDashboard = () => {
   }
   
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="text-center mb-8">
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="text-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
         <p className="text-gray-600 mt-2">Monitor employee time tracking activity</p>
+      </div>
+      
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-md">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <FiInfo className="h-5 w-5 text-yellow-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-yellow-700">
+              <strong>Lunch Break Policy:</strong> For shifts longer than 5 hours, 1 hour is automatically deducted for lunch break.
+            </p>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -118,7 +140,12 @@ const AdminDashboard = () => {
             <h2 className="text-lg font-semibold text-gray-800">Hours Today</h2>
             <FiClock className="text-purple-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-purple-600">{stats.totalHoursToday}</p>
+          <p className="text-3xl font-bold text-purple-600">{stats.totalHoursTodayAdjusted}</p>
+          {stats.totalHoursToday !== stats.totalHoursTodayAdjusted && (
+            <p className="text-xs text-gray-500 mt-1">
+              Before lunch: {stats.totalHoursToday} hrs
+            </p>
+          )}
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -126,7 +153,12 @@ const AdminDashboard = () => {
             <h2 className="text-lg font-semibold text-gray-800">Hours This Week</h2>
             <FiCalendar className="text-orange-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-orange-600">{stats.totalHoursThisWeek}</p>
+          <p className="text-3xl font-bold text-orange-600">{stats.totalHoursThisWeekAdjusted}</p>
+          {stats.totalHoursThisWeek !== stats.totalHoursThisWeekAdjusted && (
+            <p className="text-xs text-gray-500 mt-1">
+              Before lunch: {stats.totalHoursThisWeek} hrs
+            </p>
+          )}
         </div>
       </div>
       
@@ -151,7 +183,8 @@ const AdminDashboard = () => {
                     <th className="py-3 px-6 text-left">Date</th>
                     <th className="py-3 px-6 text-left">Clock In</th>
                     <th className="py-3 px-6 text-left">Clock Out</th>
-                    <th className="py-3 px-6 text-right">Hours</th>
+                    <th className="py-3 px-6 text-right">Worked</th>
+                    <th className="py-3 px-6 text-right">Paid</th>
                   </tr>
                 </thead>
                 <tbody className="text-gray-600 text-sm">
@@ -167,17 +200,26 @@ const AdminDashboard = () => {
                         <td className="py-3 px-6 text-right">
                           {log.totalHours > 0 ? log.totalHours.toFixed(2) : '---'}
                         </td>
+                        <td className="py-3 px-6 text-right">
+                          {log.adjustedHours !== undefined ? 
+                            log.adjustedHours.toFixed(2) : 
+                            (log.totalHours > 0 ? log.totalHours.toFixed(2) : '---')}
+                          {log.lunchBreakDeducted && <sup>*</sup>}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="py-6 text-center text-gray-500">
+                      <td colSpan="6" className="py-6 text-center text-gray-500">
                         No time logs found
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
+              <div className="mt-2 text-xs text-gray-500">
+                * Lunch break (1 hour) automatically deducted for shifts over 5 hours
+              </div>
             </div>
           </div>
         </div>
@@ -210,6 +252,12 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Date/time indicator in footer */}
+      <div className="mt-8 text-center text-xs text-gray-500">
+        <p>Date: 2025-05-23 | Time: 11:05:11 UTC</p>
+        <p>Current user: Krizzna69</p>
       </div>
     </div>
   );
