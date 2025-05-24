@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { FiUser, FiUserPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
+import { FiUser, FiUserPlus, FiEdit2, FiTrash2, FiSearch, FiUpload } from 'react-icons/fi';
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
@@ -17,17 +17,18 @@ const EmployeeList = () => {
     password: '',
     role: 'employee',
   });
-  
+  const fileInputRef = useRef();
+
   useEffect(() => {
     fetchEmployees();
   }, []);
-  
+
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredEmployees(employees);
     } else {
       const filtered = employees.filter(
-        employee => 
+        employee =>
           employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
           employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           employee.role.toLowerCase().includes(searchTerm.toLowerCase())
@@ -35,7 +36,7 @@ const EmployeeList = () => {
       setFilteredEmployees(filtered);
     }
   }, [searchTerm, employees]);
-  
+
   const fetchEmployees = async () => {
     try {
       setLoading(true);
@@ -49,7 +50,7 @@ const EmployeeList = () => {
       setLoading(false);
     }
   };
-  
+
   const handleOpenModal = (employee = null) => {
     if (employee) {
       setEditMode(true);
@@ -72,7 +73,7 @@ const EmployeeList = () => {
     }
     setShowModal(true);
   };
-  
+
   const handleCloseModal = () => {
     setShowModal(false);
     setCurrentEmployee(null);
@@ -83,17 +84,17 @@ const EmployeeList = () => {
       role: 'employee',
     });
   };
-  
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       if (editMode) {
         // Update employee
@@ -108,17 +109,17 @@ const EmployeeList = () => {
         await api.post('/api/auth/register', formData);
         toast.success('Employee created successfully');
       }
-      
+
       // Refresh employee list
       fetchEmployees();
-      
+
       // Close modal
       handleCloseModal();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
     }
   };
-  
+
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
@@ -134,7 +135,33 @@ const EmployeeList = () => {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
-  
+
+  // CSV Upload Handler
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await api.post('/api/employees/upload-csv', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success(`Created: ${response.data.created}, Skipped: ${response.data.skipped}`);
+      if (response.data.errors && response.data.errors.length > 0) {
+        toast.error('Some entries failed (see console)');
+        console.log('CSV Upload Errors:', response.data.errors);
+      }
+      fetchEmployees();
+    } catch (err) {
+      toast.error('CSV upload failed');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -143,7 +170,7 @@ const EmployeeList = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
@@ -160,15 +187,29 @@ const EmployeeList = () => {
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           </div>
           <button
-            onClick={() => handleOpenModal()}
+            onClick={handleOpenModal}
             className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <FiUserPlus className="mr-2" />
             Add Employee
           </button>
+          <button
+            onClick={handleUploadClick}
+            className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <FiUpload className="mr-2" />
+            Upload CSV
+          </button>
+          <input
+            type="file"
+            accept=".csv"
+            ref={fileInputRef}
+            onChange={handleCSVUpload}
+            style={{ display: 'none' }}
+          />
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {filteredEmployees.length > 0 ? (
           <div className="overflow-x-auto">
@@ -231,7 +272,7 @@ const EmployeeList = () => {
           </div>
         )}
       </div>
-      
+
       {/* Employee Modal - Add/Edit */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
