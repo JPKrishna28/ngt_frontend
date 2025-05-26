@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { FiUser, FiUserPlus, FiEdit2, FiTrash2, FiSearch, FiUpload } from 'react-icons/fi';
+import { 
+  FiUser, FiUserPlus, FiEdit2, FiTrash2, FiSearch, 
+  FiUpload, FiDownload, FiEye, FiFilter, FiCheck 
+} from 'react-icons/fi';
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
@@ -11,32 +15,55 @@ const EmployeeList = () => {
   const [editMode, setEditMode] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
+  const fileInputRef = useRef();
+  const csvTemplateRef = useRef();
   const [formData, setFormData] = useState({
     employeeId: '',
     name: '',
     password: '',
     role: 'employee',
   });
-  const fileInputRef = useRef();
-
+  
   useEffect(() => {
     fetchEmployees();
   }, []);
-
+  
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredEmployees(employees);
-    } else {
-      const filtered = employees.filter(
-        employee =>
+    let filtered = [...employees];
+    
+    // Apply role filter
+    if (filterRole !== 'all') {
+      filtered = filtered.filter(employee => employee.role === filterRole);
+    }
+    
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(
+        employee => 
           employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
           employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           employee.role.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredEmployees(filtered);
     }
-  }, [searchTerm, employees]);
-
+    
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    setFilteredEmployees(filtered);
+  }, [searchTerm, employees, filterRole, sortConfig]);
+  
   const fetchEmployees = async () => {
     try {
       setLoading(true);
@@ -50,7 +77,7 @@ const EmployeeList = () => {
       setLoading(false);
     }
   };
-
+  
   const handleOpenModal = (employee = null) => {
     if (employee) {
       setEditMode(true);
@@ -73,7 +100,7 @@ const EmployeeList = () => {
     }
     setShowModal(true);
   };
-
+  
   const handleCloseModal = () => {
     setShowModal(false);
     setCurrentEmployee(null);
@@ -84,17 +111,17 @@ const EmployeeList = () => {
       role: 'employee',
     });
   };
-
+  
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     try {
       if (editMode) {
         // Update employee
@@ -109,17 +136,17 @@ const EmployeeList = () => {
         await api.post('/api/auth/register', formData);
         toast.success('Employee created successfully');
       }
-
+      
       // Refresh employee list
       fetchEmployees();
-
+      
       // Close modal
       handleCloseModal();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
     }
   };
-
+  
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
@@ -135,7 +162,19 @@ const EmployeeList = () => {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
-
+  
+  const handleRoleFilter = (role) => {
+    setFilterRole(role);
+  };
+  
+  const handleSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+  
   // CSV Upload Handler
   const handleUploadClick = () => {
     fileInputRef.current.click();
@@ -148,6 +187,7 @@ const EmployeeList = () => {
     formData.append('file', file);
 
     try {
+      setLoading(true);
       const response = await api.post('/api/employees/upload-csv', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -157,11 +197,34 @@ const EmployeeList = () => {
         console.log('CSV Upload Errors:', response.data.errors);
       }
       fetchEmployees();
+      // Reset file input
+      e.target.value = null;
     } catch (err) {
-      toast.error('CSV upload failed');
+      toast.error(err.response?.data?.message || 'CSV upload failed');
+    } finally {
+      setLoading(false);
     }
   };
-
+  
+  // CSV Template Download
+  const handleTemplateDownload = () => {
+    const header = 'employeeId,name,password,role\n';
+    const sampleData = 'E001,John Doe,password123,employee\nE002,Jane Smith,secret456,admin\n';
+    const csvContent = header + sampleData;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    csvTemplateRef.current.href = url;
+    csvTemplateRef.current.download = 'employee_template.csv';
+    csvTemplateRef.current.click();
+    
+    // Clean up
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -170,7 +233,7 @@ const EmployeeList = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
@@ -193,32 +256,111 @@ const EmployeeList = () => {
             <FiUserPlus className="mr-2" />
             Add Employee
           </button>
-          <button
-            onClick={handleUploadClick}
-            className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <FiUpload className="mr-2" />
-            Upload CSV
-          </button>
-          <input
-            type="file"
-            accept=".csv"
-            ref={fileInputRef}
-            onChange={handleCSVUpload}
-            style={{ display: 'none' }}
-          />
+          <div className="relative">
+            <button
+              onClick={handleUploadClick}
+              className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiUpload className="mr-2" />
+              Upload CSV
+            </button>
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleCSVUpload}
+              style={{ display: 'none' }}
+            />
+          </div>
+          
         </div>
       </div>
-
+      
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex flex-wrap items-center justify-between">
+            <div className="flex space-x-2 mb-2 sm:mb-0">
+              <button
+                onClick={() => handleRoleFilter('all')}
+                className={`px-3 py-1 rounded-md text-sm ${
+                  filterRole === 'all'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => handleRoleFilter('admin')}
+                className={`px-3 py-1 rounded-md text-sm ${
+                  filterRole === 'admin'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Admins
+              </button>
+              <button
+                onClick={() => handleRoleFilter('employee')}
+                className={`px-3 py-1 rounded-md text-sm ${
+                  filterRole === 'employee'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Employees
+              </button>
+            </div>
+            <div className="text-sm text-gray-500">
+              {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found
+            </div>
+          </div>
+        </div>
+        
         {filteredEmployees.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white">
               <thead>
                 <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left">ID</th>
-                  <th className="py-3 px-6 text-left">Name</th>
-                  <th className="py-3 px-6 text-left">Role</th>
+                  <th 
+                    className="py-3 px-6 text-left cursor-pointer hover:bg-gray-200"
+                    onClick={() => handleSort('employeeId')}
+                  >
+                    <div className="flex items-center">
+                      ID
+                      {sortConfig.key === 'employeeId' && (
+                        <span className="ml-1">
+                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="py-3 px-6 text-left cursor-pointer hover:bg-gray-200"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center">
+                      Name
+                      {sortConfig.key === 'name' && (
+                        <span className="ml-1">
+                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="py-3 px-6 text-left cursor-pointer hover:bg-gray-200"
+                    onClick={() => handleSort('role')}
+                  >
+                    <div className="flex items-center">
+                      Role
+                      {sortConfig.key === 'role' && (
+                        <span className="ml-1">
+                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </div>
+                  </th>
                   <th className="py-3 px-6 text-center">Actions</th>
                 </tr>
               </thead>
@@ -245,6 +387,13 @@ const EmployeeList = () => {
                     </td>
                     <td className="py-3 px-6 text-center">
                       <div className="flex items-center justify-center space-x-3">
+                        <Link
+                          to={`/employees/${employee.employeeId}/details`}
+                          className="text-green-600 hover:text-green-900 transition-colors"
+                          title="View Details"
+                        >
+                          <FiEye size={18} />
+                        </Link>
                         <button
                           onClick={() => handleOpenModal(employee)}
                           className="text-blue-600 hover:text-blue-900 transition-colors"
@@ -268,11 +417,11 @@ const EmployeeList = () => {
           </div>
         ) : (
           <div className="py-8 text-center text-gray-500">
-            {searchTerm ? 'No employees match your search' : 'No employees found'}
+            {searchTerm || filterRole !== 'all' ? 'No employees match your search criteria' : 'No employees found'}
           </div>
         )}
       </div>
-
+      
       {/* Employee Modal - Add/Edit */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -361,8 +510,8 @@ const EmployeeList = () => {
 
       {/* Date/time indicator in footer */}
       <div className="mt-8 text-center text-xs text-gray-500">
-        <p>Date: 2025-05-23 | Time: 10:52:01 UTC</p>
-        <p>Current user: Krizzna69</p>
+        <p>Date: 2025-05-26 | Time: 12:22:31 UTC</p>
+        <p>Current user: JPKrishna28</p>
       </div>
     </div>
   );

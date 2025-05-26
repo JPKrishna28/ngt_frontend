@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
-import { FiClock, FiCalendar, FiInfo } from 'react-icons/fi';
+import { FiClock, FiCalendar, FiInfo, FiCoffee } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 const Dashboard = () => {
@@ -11,11 +11,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     today: 0,
-    todayAdjusted: 0,
+    todayBreaks: 0,
+    todayNet: 0,
     week: 0,
-    weekAdjusted: 0,
+    weekBreaks: 0,
+    weekNet: 0,
     month: 0,
-    monthAdjusted: 0,
+    monthBreaks: 0,
+    monthNet: 0,
   });
   
   useEffect(() => {
@@ -24,7 +27,7 @@ const Dashboard = () => {
         const { data } = await api.get('/api/timelogs/me');
         setTimeLogs(data);
         
-        // Calculate stats with adjusted hours
+        // Calculate stats
         calculateStats(data);
       } catch (error) {
         console.error('Error fetching time logs:', error);
@@ -46,43 +49,49 @@ const Dashboard = () => {
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     
     let todayHours = 0;
-    let todayAdjustedHours = 0;
+    let todayBreaks = 0;
+    let todayNet = 0;
     let weekHours = 0;
-    let weekAdjustedHours = 0;
+    let weekBreaks = 0;
+    let weekNet = 0;
     let monthHours = 0;
-    let monthAdjustedHours = 0;
+    let monthBreaks = 0;
+    let monthNet = 0;
     
     logs.forEach((log) => {
       const logDate = new Date(log.loginTime);
       
       if (log.status === 'completed') {
-        // Use adjusted hours if available, otherwise use total hours
-        const adjustedHours = log.adjustedHours !== undefined ? log.adjustedHours : log.totalHours;
-        
         if (logDate >= today) {
-          todayHours += log.totalHours;
-          todayAdjustedHours += adjustedHours;
+          todayHours += log.totalHours || 0;
+          todayBreaks += log.totalBreakHours || 0;
+          todayNet += log.netWorkHours || 0;
         }
         
         if (logDate >= oneWeekAgo) {
-          weekHours += log.totalHours;
-          weekAdjustedHours += adjustedHours;
+          weekHours += log.totalHours || 0;
+          weekBreaks += log.totalBreakHours || 0;
+          weekNet += log.netWorkHours || 0;
         }
         
         if (logDate >= oneMonthAgo) {
-          monthHours += log.totalHours;
-          monthAdjustedHours += adjustedHours;
+          monthHours += log.totalHours || 0;
+          monthBreaks += log.totalBreakHours || 0;
+          monthNet += log.netWorkHours || 0;
         }
       }
     });
     
     setStats({
       today: todayHours.toFixed(2),
-      todayAdjusted: todayAdjustedHours.toFixed(2),
+      todayBreaks: todayBreaks.toFixed(2),
+      todayNet: todayNet.toFixed(2),
       week: weekHours.toFixed(2),
-      weekAdjusted: weekAdjustedHours.toFixed(2),
+      weekBreaks: weekBreaks.toFixed(2),
+      weekNet: weekNet.toFixed(2),
       month: monthHours.toFixed(2),
-      monthAdjusted: monthAdjustedHours.toFixed(2),
+      monthBreaks: monthBreaks.toFixed(2),
+      monthNet: monthNet.toFixed(2),
     });
   };
   
@@ -105,31 +114,26 @@ const Dashboard = () => {
         </p>
       </div>
       
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-md">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <FiInfo className="h-5 w-5 text-yellow-400" />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-yellow-700">
-              <strong>Note:</strong> For shifts longer than 5 hours, 1 hour is automatically deducted for lunch break.
-            </p>
-          </div>
-        </div>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Today</h2>
             <FiClock className="text-blue-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-blue-600">{stats.todayAdjusted} hrs</p>
-          {stats.today !== stats.todayAdjusted && (
-            <p className="text-xs text-gray-500 mt-1">
-              Total: {stats.today} hrs (Lunch break deducted)
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total:</span>
+              <span className="text-lg font-semibold text-gray-800">{stats.today} hrs</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Breaks:</span>
+              <span className="text-lg font-semibold text-yellow-600">{stats.todayBreaks} hrs</span>
+            </div>
+            <div className="flex justify-between items-center border-t pt-2">
+              <span className="text-sm text-gray-600">Net:</span>
+              <span className="text-lg font-semibold text-blue-600">{stats.todayNet} hrs</span>
+            </div>
+          </div>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -137,12 +141,20 @@ const Dashboard = () => {
             <h2 className="text-lg font-semibold text-gray-800">This Week</h2>
             <FiCalendar className="text-green-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-green-600">{stats.weekAdjusted} hrs</p>
-          {stats.week !== stats.weekAdjusted && (
-            <p className="text-xs text-gray-500 mt-1">
-              Total: {stats.week} hrs (Lunch breaks deducted)
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total:</span>
+              <span className="text-lg font-semibold text-gray-800">{stats.week} hrs</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Breaks:</span>
+              <span className="text-lg font-semibold text-yellow-600">{stats.weekBreaks} hrs</span>
+            </div>
+            <div className="flex justify-between items-center border-t pt-2">
+              <span className="text-sm text-gray-600">Net:</span>
+              <span className="text-lg font-semibold text-green-600">{stats.weekNet} hrs</span>
+            </div>
+          </div>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -150,12 +162,20 @@ const Dashboard = () => {
             <h2 className="text-lg font-semibold text-gray-800">This Month</h2>
             <FiCalendar className="text-purple-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-purple-600">{stats.monthAdjusted} hrs</p>
-          {stats.month !== stats.monthAdjusted && (
-            <p className="text-xs text-gray-500 mt-1">
-              Total: {stats.month} hrs (Lunch breaks deducted)
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total:</span>
+              <span className="text-lg font-semibold text-gray-800">{stats.month} hrs</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Breaks:</span>
+              <span className="text-lg font-semibold text-yellow-600">{stats.monthBreaks} hrs</span>
+            </div>
+            <div className="flex justify-between items-center border-t pt-2">
+              <span className="text-sm text-gray-600">Net:</span>
+              <span className="text-lg font-semibold text-purple-600">{stats.monthNet} hrs</span>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -180,8 +200,9 @@ const Dashboard = () => {
                   <th className="py-3 px-6 text-left">Date</th>
                   <th className="py-3 px-6 text-left">Clock In</th>
                   <th className="py-3 px-6 text-left">Clock Out</th>
-                  <th className="py-3 px-6 text-right">Worked</th>
-                  <th className="py-3 px-6 text-right">Paid</th>
+                  <th className="py-3 px-6 text-right">Total</th>
+                  <th className="py-3 px-6 text-right">Breaks</th>
+                  <th className="py-3 px-6 text-right">Net</th>
                   <th className="py-3 px-6 text-center">Status</th>
                 </tr>
               </thead>
@@ -199,10 +220,15 @@ const Dashboard = () => {
                       {log.totalHours > 0 ? log.totalHours.toFixed(2) : '---'}
                     </td>
                     <td className="py-3 px-6 text-right">
-                      {log.adjustedHours !== undefined ? 
-                        log.adjustedHours.toFixed(2) : 
-                        (log.totalHours > 0 ? log.totalHours.toFixed(2) : '---')}
-                      {log.lunchBreakDeducted && <sup>*</sup>}
+                      {log.totalBreakHours > 0 ? (
+                        <span className="flex items-center justify-end">
+                          <FiCoffee className="mr-1 text-yellow-500" />
+                          {log.totalBreakHours.toFixed(2)}
+                        </span>
+                      ) : '0.00'}
+                    </td>
+                    <td className="py-3 px-6 text-right">
+                      {log.netWorkHours > 0 ? log.netWorkHours.toFixed(2) : '---'}
                     </td>
                     <td className="py-3 px-6 text-center">
                       <span
@@ -219,9 +245,6 @@ const Dashboard = () => {
                 ))}
               </tbody>
             </table>
-            <div className="mt-2 text-xs text-gray-500">
-              * Lunch break (1 hour) automatically deducted for shifts over 5 hours
-            </div>
           </div>
         ) : (
           <div className="text-center py-4 text-gray-500">No time logs found</div>
@@ -229,10 +252,7 @@ const Dashboard = () => {
       </div>
       
       {/* Date/time indicator in footer */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <p>Date: 2025-05-23 | Time: 11:05:11 UTC</p>
-        <p>Current user: Krizzna69</p>
-      </div>
+     
     </div>
   );
 };

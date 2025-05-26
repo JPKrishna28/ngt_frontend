@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
-import { FiUsers, FiClock, FiCalendar, FiInfo } from 'react-icons/fi';
+import { FiUsers, FiClock, FiCalendar, FiInfo, FiCoffee } from 'react-icons/fi';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
     totalHoursToday: 0,
-    totalHoursTodayAdjusted: 0,
+    totalBreaksToday: 0,
+    netHoursToday: 0,
     totalHoursThisWeek: 0,
-    totalHoursThisWeekAdjusted: 0,
+    totalBreaksThisWeek: 0,
+    netHoursThisWeek: 0,
   });
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,23 +55,26 @@ const AdminDashboard = () => {
     );
     
     let hoursToday = 0;
-    let hoursTodayAdjusted = 0;
+    let breaksToday = 0;
+    let netHoursToday = 0;
     let hoursThisWeek = 0;
-    let hoursThisWeekAdjusted = 0;
+    let breaksThisWeek = 0;
+    let netHoursThisWeek = 0;
     
     logs.forEach((log) => {
       if (log.status === 'completed') {
         const logDate = new Date(log.loginTime);
-        const adjustedHours = log.adjustedHours !== undefined ? log.adjustedHours : log.totalHours;
         
         if (logDate >= today) {
-          hoursToday += log.totalHours;
-          hoursTodayAdjusted += adjustedHours;
+          hoursToday += log.totalHours || 0;
+          breaksToday += log.totalBreakHours || 0;
+          netHoursToday += log.netWorkHours || 0;
         }
         
         if (logDate >= oneWeekAgo) {
-          hoursThisWeek += log.totalHours;
-          hoursThisWeekAdjusted += adjustedHours;
+          hoursThisWeek += log.totalHours || 0;
+          breaksThisWeek += log.totalBreakHours || 0;
+          netHoursThisWeek += log.netWorkHours || 0;
         }
       }
     });
@@ -78,9 +83,11 @@ const AdminDashboard = () => {
       totalEmployees: employees.length,
       activeEmployees: activeEmployeeIds.size,
       totalHoursToday: hoursToday.toFixed(2),
-      totalHoursTodayAdjusted: hoursTodayAdjusted.toFixed(2),
+      totalBreaksToday: breaksToday.toFixed(2),
+      netHoursToday: netHoursToday.toFixed(2),
       totalHoursThisWeek: hoursThisWeek.toFixed(2),
-      totalHoursThisWeekAdjusted: hoursThisWeekAdjusted.toFixed(2),
+      totalBreaksThisWeek: breaksThisWeek.toFixed(2),
+      netHoursThisWeek: netHoursThisWeek.toFixed(2),
     });
   };
   
@@ -105,14 +112,14 @@ const AdminDashboard = () => {
         <p className="text-gray-600 mt-2">Monitor employee time tracking activity</p>
       </div>
       
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-md">
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 rounded-md">
         <div className="flex">
           <div className="flex-shrink-0">
-            <FiInfo className="h-5 w-5 text-yellow-400" />
+            <FiInfo className="h-5 w-5 text-blue-400" />
           </div>
           <div className="ml-3">
-            <p className="text-sm text-yellow-700">
-              <strong>Lunch Break Policy:</strong> For shifts longer than 5 hours, 1 hour is automatically deducted for lunch break.
+            <p className="text-sm text-blue-700">
+              <strong>New Break Tracking:</strong> Employees now manually track breaks using the Break Clock In/Out buttons.
             </p>
           </div>
         </div>
@@ -137,28 +144,44 @@ const AdminDashboard = () => {
         
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Hours Today</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Today's Work</h2>
             <FiClock className="text-purple-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-purple-600">{stats.totalHoursTodayAdjusted}</p>
-          {stats.totalHoursToday !== stats.totalHoursTodayAdjusted && (
-            <p className="text-xs text-gray-500 mt-1">
-              Before lunch: {stats.totalHoursToday} hrs
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total:</span>
+              <span className="text-lg font-semibold text-gray-800">{stats.totalHoursToday} hrs</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Breaks:</span>
+              <span className="text-lg font-semibold text-yellow-600">{stats.totalBreaksToday} hrs</span>
+            </div>
+            <div className="flex justify-between items-center border-t pt-2">
+              <span className="text-sm text-gray-600">Net:</span>
+              <span className="text-lg font-semibold text-purple-600">{stats.netHoursToday} hrs</span>
+            </div>
+          </div>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Hours This Week</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Week's Work</h2>
             <FiCalendar className="text-orange-600 text-xl" />
           </div>
-          <p className="text-3xl font-bold text-orange-600">{stats.totalHoursThisWeekAdjusted}</p>
-          {stats.totalHoursThisWeek !== stats.totalHoursThisWeekAdjusted && (
-            <p className="text-xs text-gray-500 mt-1">
-              Before lunch: {stats.totalHoursThisWeek} hrs
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total:</span>
+              <span className="text-lg font-semibold text-gray-800">{stats.totalHoursThisWeek} hrs</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Breaks:</span>
+              <span className="text-lg font-semibold text-yellow-600">{stats.totalBreaksThisWeek} hrs</span>
+            </div>
+            <div className="flex justify-between items-center border-t pt-2">
+              <span className="text-sm text-gray-600">Net:</span>
+              <span className="text-lg font-semibold text-orange-600">{stats.netHoursThisWeek} hrs</span>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -183,8 +206,9 @@ const AdminDashboard = () => {
                     <th className="py-3 px-6 text-left">Date</th>
                     <th className="py-3 px-6 text-left">Clock In</th>
                     <th className="py-3 px-6 text-left">Clock Out</th>
-                    <th className="py-3 px-6 text-right">Worked</th>
-                    <th className="py-3 px-6 text-right">Paid</th>
+                    <th className="py-3 px-6 text-right">Total</th>
+                    <th className="py-3 px-6 text-right">Breaks</th>
+                    <th className="py-3 px-6 text-right">Net</th>
                   </tr>
                 </thead>
                 <tbody className="text-gray-600 text-sm">
@@ -201,25 +225,27 @@ const AdminDashboard = () => {
                           {log.totalHours > 0 ? log.totalHours.toFixed(2) : '---'}
                         </td>
                         <td className="py-3 px-6 text-right">
-                          {log.adjustedHours !== undefined ? 
-                            log.adjustedHours.toFixed(2) : 
-                            (log.totalHours > 0 ? log.totalHours.toFixed(2) : '---')}
-                          {log.lunchBreakDeducted && <sup>*</sup>}
+                          {log.totalBreakHours > 0 ? (
+                            <span className="flex items-center justify-end">
+                              <FiCoffee className="mr-1 text-yellow-500" />
+                              {log.totalBreakHours.toFixed(2)}
+                            </span>
+                          ) : '0.00'}
+                        </td>
+                        <td className="py-3 px-6 text-right">
+                          {log.netWorkHours > 0 ? log.netWorkHours.toFixed(2) : '---'}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="py-6 text-center text-gray-500">
+                      <td colSpan="7" className="py-6 text-center text-gray-500">
                         No time logs found
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
-              <div className="mt-2 text-xs text-gray-500">
-                * Lunch break (1 hour) automatically deducted for shifts over 5 hours
-              </div>
             </div>
           </div>
         </div>
@@ -255,10 +281,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Date/time indicator in footer */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <p>Date: 2025-05-23 | Time: 11:05:11 UTC</p>
-        <p>Current user: Krizzna69</p>
-      </div>
+      
     </div>
   );
 };
