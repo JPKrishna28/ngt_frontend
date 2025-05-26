@@ -319,6 +319,16 @@ const EmployeeList = () => {
               >
                 Employees
               </button>
+              <button
+                onClick={() => handleRoleFilter('superadmin')}
+                className={`px-3 py-1 rounded-md text-sm ${
+                  filterRole === 'superadmin'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Super Admin
+              </button>
             </div>
             <div className="text-sm text-gray-500">
               {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} found

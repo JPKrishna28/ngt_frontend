@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useAuth from '../hooks/useAuth';
 import { FiClock } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+
 
 const LoginPage = () => {
   const [employeeId, setEmployeeId] = useState('');
@@ -89,7 +91,16 @@ const LoginPage = () => {
               {isLoading ? 'Logging In...' : 'Login'}
             </button>
           </div>
+          
         </form>
+        <div className="text-center mt-4">
+  <p className="text-sm text-gray-600">
+    Don't have an account?{' '}
+    <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+      Register here
+    </Link>
+  </p>
+</div>
         
         {/* Removed the registration link */}
         <div className="text-center mt-4">
