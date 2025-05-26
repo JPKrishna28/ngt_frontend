@@ -272,7 +272,16 @@ const EmployeeList = () => {
               style={{ display: 'none' }}
             />
           </div>
-          
+          <div className="relative">
+            <button
+              onClick={handleTemplateDownload}
+              className="flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <FiDownload className="mr-2" />
+              CSV Template
+            </button>
+            <a ref={csvTemplateRef} style={{ display: 'none' }}></a>
+          </div>
         </div>
       </div>
       
@@ -508,11 +517,8 @@ const EmployeeList = () => {
         </div>
       )}
 
-      {/* Date/time indicator in footer */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <p>Date: 2025-05-26 | Time: 12:22:31 UTC</p>
-        <p>Current user: JPKrishna28</p>
-      </div>
+      
+      
     </div>
   );
 };
