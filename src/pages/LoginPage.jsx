@@ -93,14 +93,7 @@ const LoginPage = () => {
           </div>
           
         </form>
-        <div className="text-center mt-4">
-  <p className="text-sm text-gray-600">
-    Don't have an account?{' '}
-    <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-      Register here
-    </Link>
-  </p>
-</div>
+        
         
         {/* Removed the registration link */}
         <div className="text-center mt-4">

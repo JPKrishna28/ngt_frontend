@@ -48,10 +48,6 @@ const Header = () => {
                 <FiShield />
                 <span>Admin Management</span>
               </Link>
-              <Link to="/employees" className="flex items-center space-x-1 hover:text-blue-200">
-                <FiUsers />
-                <span>Employee Management</span>
-              </Link>
             </>
           )}
           
