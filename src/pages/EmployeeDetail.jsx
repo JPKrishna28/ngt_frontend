@@ -6,7 +6,6 @@ import {
   FiUser, FiClock, FiCalendar, FiArrowLeft, 
   FiCoffee, FiPieChart, FiBarChart2, FiTrendingUp, FiFileText, FiMail
 } from 'react-icons/fi';
-// Offer letter form import (assumes you have this component)
 import OfferLetterForm from '../components/OfferLetterForm';
 
 const EmployeeDetail = () => {
@@ -177,25 +176,307 @@ const EmployeeDetail = () => {
       {activeTab === 'overview' && (
         <div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* ... (overview cards as before) ... */}
-            {/* (Omitted for brevity, identical to your existing code) */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Today</h3>
+                <FiClock className="text-blue-600 text-xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Hours:</span>
+                  <span className="text-lg font-semibold text-gray-800">{stats.today.total} hrs</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Break Time:</span>
+                  <span className="text-lg font-semibold text-yellow-600">{stats.today.breaks} hrs</span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-sm text-gray-600">Net Working:</span>
+                  <span className="text-lg font-semibold text-blue-600">{stats.today.net} hrs</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">This Week</h3>
+                <FiCalendar className="text-green-600 text-xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Hours:</span>
+                  <span className="text-lg font-semibold text-gray-800">{stats.week.total} hrs</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Break Time:</span>
+                  <span className="text-lg font-semibold text-yellow-600">{stats.week.breaks} hrs</span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-sm text-gray-600">Net Working:</span>
+                  <span className="text-lg font-semibold text-green-600">{stats.week.net} hrs</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">This Month</h3>
+                <FiCalendar className="text-purple-600 text-xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Hours:</span>
+                  <span className="text-lg font-semibold text-gray-800">{stats.month.total} hrs</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Break Time:</span>
+                  <span className="text-lg font-semibold text-yellow-600">{stats.month.breaks} hrs</span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-sm text-gray-600">Net Working:</span>
+                  <span className="text-lg font-semibold text-purple-600">{stats.month.net} hrs</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">All Time</h3>
+                <FiTrendingUp className="text-red-600 text-xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Hours:</span>
+                  <span className="text-lg font-semibold text-gray-800">{stats.allTime.total} hrs</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Break Time:</span>
+                  <span className="text-lg font-semibold text-yellow-600">{stats.allTime.breaks} hrs</span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-sm text-gray-600">Net Working:</span>
+                  <span className="text-lg font-semibold text-red-600">{stats.allTime.net} hrs</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* ... (average and other stats cards as before) ... */}
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <div className="bg-blue-100 p-3 rounded-full mr-4">
+                <FiClock className="text-blue-600 text-xl" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Avg. Daily Hours</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.avgDailyHours}</p>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <div className="bg-yellow-100 p-3 rounded-full mr-4">
+                <FiCoffee className="text-yellow-600 text-xl" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Avg. Break Time</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.avgBreakTime}</p>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+              <div className="bg-green-100 p-3 rounded-full mr-4">
+                <FiCalendar className="text-green-600 text-xl" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Days Worked</p>
+                <p className="text-2xl font-bold text-green-600">{stats.totalDaysWorked}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {activeTab === 'time-logs' && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          {/* ... (time logs table as before) ... */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-800">Time Log History</h2>
+          </div>
+          
+          {timeLogs.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th className="py-3 px-6 text-left">Date</th>
+                    <th className="py-3 px-6 text-left">Clock In</th>
+                    <th className="py-3 px-6 text-left">Clock Out</th>
+                    <th className="py-3 px-6 text-right">Total Hours</th>
+                    <th className="py-3 px-6 text-right">Break Time</th>
+                    <th className="py-3 px-6 text-right">Net Hours</th>
+                    <th className="py-3 px-6 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-600 text-sm">
+                  {timeLogs.map((log) => (
+                    <tr key={log._id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-3 px-6 text-left whitespace-nowrap">
+                        {formatDate(log.loginTime)}
+                      </td>
+                      <td className="py-3 px-6 text-left">{formatTime(log.loginTime)}</td>
+                      <td className="py-3 px-6 text-left">
+                        {log.logoutTime ? formatTime(log.logoutTime) : '---'}
+                      </td>
+                      <td className="py-3 px-6 text-right">
+                        {log.totalHours > 0 ? log.totalHours.toFixed(2) : '---'}
+                      </td>
+                      <td className="py-3 px-6 text-right">
+                        {log.totalBreakHours > 0 ? (
+                          <span className="flex items-center justify-end">
+                            <FiCoffee className="mr-1 text-yellow-500" />
+                            {log.totalBreakHours.toFixed(2)}
+                          </span>
+                        ) : '0.00'}
+                      </td>
+                      <td className="py-3 px-6 text-right">
+                        {log.netWorkHours > 0 ? log.netWorkHours.toFixed(2) : '---'}
+                      </td>
+                      <td className="py-3 px-6 text-center">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            log.status === 'active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {log.status === 'active' ? 'Active' : 'Completed'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-4 text-gray-500">No time logs found</div>
+          )}
         </div>
       )}
 
       {activeTab === 'break-analysis' && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          {/* ... (break analysis as before) ... */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-800">Break Analysis</h2>
+            <FiPieChart className="text-purple-600 text-xl" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-yellow-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Morning Breaks</h3>
+              <p className="text-3xl font-bold text-yellow-600">{stats.breakDistribution.morning} hrs</p>
+              <p className="text-sm text-gray-600 mt-1">Before 12:00 PM</p>
+            </div>
+
+            <div className="bg-orange-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Afternoon Breaks</h3>
+              <p className="text-3xl font-bold text-orange-600">{stats.breakDistribution.afternoon} hrs</p>
+              <p className="text-sm text-gray-600 mt-1">12:00 PM - 5:00 PM</p>
+            </div>
+
+            <div className="bg-red-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Evening Breaks</h3>
+              <p className="text-3xl font-bold text-red-600">{stats.breakDistribution.evening} hrs</p>
+              <p className="text-sm text-gray-600 mt-1">After 5:00 PM</p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Break Distribution</h3>
+            <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+              {stats.breakDistribution.morning + 
+                stats.breakDistribution.afternoon + 
+                stats.breakDistribution.evening > 0 ? (
+                <>
+                  <div 
+                    className="h-full bg-yellow-500 float-left" 
+                    style={{ 
+                      width: `${(stats.breakDistribution.morning / 
+                        (stats.breakDistribution.morning + 
+                        stats.breakDistribution.afternoon + 
+                        stats.breakDistribution.evening)) * 100}%` 
+                    }}
+                  ></div>
+                  <div 
+                    className="h-full bg-orange-500 float-left" 
+                    style={{ 
+                      width: `${(stats.breakDistribution.afternoon / 
+                        (stats.breakDistribution.morning + 
+                        stats.breakDistribution.afternoon + 
+                        stats.breakDistribution.evening)) * 100}%` 
+                    }}
+                  ></div>
+                  <div 
+                    className="h-full bg-red-500 float-left" 
+                    style={{ 
+                      width: `${(stats.breakDistribution.evening / 
+                        (stats.breakDistribution.morning + 
+                        stats.breakDistribution.afternoon + 
+                        stats.breakDistribution.evening)) * 100}%` 
+                    }}
+                  ></div>
+                </>
+              ) : (
+                <div className="h-full bg-gray-300" style={{ width: '100%' }}></div>
+              )}
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-gray-600">
+              <span>Morning</span>
+              <span>Afternoon</span>
+              <span>Evening</span>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Breaks</h3>
+            {timeLogs.some(log => log.breaks && log.breaks.length > 0) ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                      <th className="py-3 px-6 text-left">Date</th>
+                      <th className="py-3 px-6 text-left">Start Time</th>
+                      <th className="py-3 px-6 text-left">End Time</th>
+                      <th className="py-3 px-6 text-right">Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-600 text-sm">
+                    {timeLogs
+                      .filter(log => log.breaks && log.breaks.length > 0)
+                      .slice(0, 5)
+                      .flatMap(log => 
+                        log.breaks.map((breakItem, index) => (
+                          <tr key={`${log._id}-${index}`} className="border-b border-gray-200 hover:bg-gray-50">
+                            <td className="py-3 px-6 text-left whitespace-nowrap">
+                              {formatDate(log.loginTime)}
+                            </td>
+                            <td className="py-3 px-6 text-left">
+                              {formatTime(breakItem.startTime)}
+                            </td>
+                            <td className="py-3 px-6 text-left">
+                              {breakItem.endTime ? formatTime(breakItem.endTime) : '---'}
+                            </td>
+                            <td className="py-3 px-6 text-right">
+                              {breakItem.duration ? breakItem.duration.toFixed(2) : '---'} hrs
+                            </td>
+                          </tr>
+                        ))
+                      )
+                    }
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">No break records found</div>
+            )}
+          </div>
         </div>
       )}
 
@@ -265,10 +546,7 @@ const EmployeeDetail = () => {
       )}
 
       {/* Date/time indicator in footer */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <p>Date: 2025-05-26 | Time: 12:10:26 UTC</p>
-        <p>Current user: JPKrishna28</p>
-      </div>
+      
     </div>
   );
 };
